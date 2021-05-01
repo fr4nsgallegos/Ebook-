@@ -3,7 +3,7 @@ import 'package:another_flushbar/flushbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_ebook_app/provider/user_provider.dart';
 import 'package:flutter_ebook_app/session/session_heper.dart';
-import 'package:flutter_ebook_app/util/http_helper.dart';
+import 'package:flutter_ebook_app/api/http_helper.dart';
 import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 
@@ -119,9 +119,12 @@ class _PerfilScreenState extends State<PerfilScreen> {
 
   @override
   Widget build(BuildContext context) {
-    txtNombre.text = SessionHelper().descripcion;
-    txtCorreo.text = SessionHelper().descripcion;
-    txtDescripcion.text = SessionHelper().descripcion;
+    txtNombre.text = Provider.of<UserProvider>(context).usuario.nombre;
+    // txtNombre.text = SessionHelper().nombres;
+
+    txtCorreo.text = Provider.of<UserProvider>(context).usuario.correo;
+    txtDescripcion.text =
+        Provider.of<UserProvider>(context).usuario.descripcion;
 
     return Scaffold(
       key: _scaffoldKey,

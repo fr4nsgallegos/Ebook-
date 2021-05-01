@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_ebook_app/provider/user_provider.dart';
 import 'package:flutter_ebook_app/util/consts.dart';
 import 'package:flutter_ebook_app/theme/theme_config.dart';
 import 'package:flutter_ebook_app/view_models/app_provider.dart';
@@ -32,15 +33,20 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<AppProvider>(
       builder: (BuildContext context, AppProvider appProvider, Widget child) {
-        return MaterialApp(
-          key: appProvider.key,
-          debugShowCheckedModeBanner: false,
-          navigatorKey: appProvider.navigatorKey,
-          title: Constants.appName,
-          theme: themeData(appProvider.theme),
-          darkTheme: themeData(ThemeConfig.darkTheme),
-          home: LoginScreen(),
-          //home: Splash(),
+        return MultiProvider(
+          providers: [
+            ChangeNotifierProvider(create: (context) => UserProvider())
+          ],
+          child: MaterialApp(
+            key: appProvider.key,
+            debugShowCheckedModeBanner: false,
+            navigatorKey: appProvider.navigatorKey,
+            title: Constants.appName,
+            theme: themeData(appProvider.theme),
+            darkTheme: themeData(ThemeConfig.darkTheme),
+            home: LoginScreen(),
+            // home: Splash(),
+          ),
         );
       },
     );

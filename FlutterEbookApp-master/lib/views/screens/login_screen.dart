@@ -1,14 +1,17 @@
 import 'dart:convert';
 
+import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_performance/firebase_performance.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_ebook_app/api/ebook_api.dart';
 import 'package:flutter_ebook_app/contantes/constantes.dart';
 import 'package:flutter_ebook_app/models/usuario.dart';
 import 'package:flutter_ebook_app/provider/user_provider.dart';
-import 'package:flutter_ebook_app/util/http_helper.dart';
+import 'package:flutter_ebook_app/api/http_helper.dart';
+import 'package:get_it/get_it.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_ebook_app/theme/theme_config.dart';
 import 'package:flutter_ebook_app/views/screens/registro_screen.dart';
@@ -18,23 +21,41 @@ import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-Future _getUserData(BuildContext context, String id) async {
-  var response = await http.get(Constantes.url + "usuario/" + id);
-  if (response.statusCode == 200) {
-    print(response.body);
-    var r = jsonDecode(response.body);
+final logger = Logger();
 
+Future getDataUser(String id, BuildContext context) {
+  final dio = Dio();
+  logger.d("User data recoverded " + id);
+  // GetIt.I.unregister();
+  // GetIt.I.registerSingleton(RestClient(dio));
+  GetIt.I<RestClient>().getUsuario(id).then((value) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.setString("codigo", r["codigo"]);
-    prefs.setString("nombre", r["nombres"]);
-    prefs.setString("descripcion", r["descripcion"]);
-    prefs.setString("correo", r["correo"]);
+    prefs.setString("codigo", value[0].codigo);
+    prefs.setString("nombre", value[0].nombre);
+    prefs.setString("descripcion", value[0].descripcion);
+    prefs.setString("correo", value[0].correo);
     Provider.of<UserProvider>(context, listen: false).fetchUserData();
-  } else {
-    print(response.body);
-    // snackBar3Sec(context, "Usuario o contraseña inválido");
-  }
+  });
 }
+
+// Future _getUserData(BuildContext context, String id) async {
+//   var response = await http.get(Constantes.url + "usuario/" + id).then((value)async{
+
+//   print("${value.body}");
+
+//     SharedPreferences prefs = await SharedPreferences.getInstance();
+//     prefs.setString("codigo", );
+//     prefs.setString("nombre", r["nombres"]);
+//     prefs.setString("descripcion", r["descripcion"]);
+//     prefs.setString("correo", r["correo"]);
+//     Provider.of<UserProvider>(context, listen: false).fetchUserData();
+
+//   });
+//  else {
+//     print(response.body);
+//     // snackBar3Sec(context, "Usuario o contraseña inválido");
+//   }
+// }
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -50,6 +71,9 @@ class _LoginScreenState extends State<LoginScreen> {
   HttpHelper helper = HttpHelper();
   //autenticationApi _autenticationApi = autenticationApi(_http);
   final logger = Logger();
+  final getIt = GetIt.instance;
+  final dio = Dio();
+
   Future<String> logIn(String email, String password) async {
     FirebaseAuth firebaseAuth = FirebaseAuth.instance;
 
@@ -234,8 +258,8 @@ class _LoginScreenState extends State<LoginScreen> {
           } else {
             String uid = await logIn(txtCorreo.text, txtPwd.text);
 
-            _getUserData(context, uid);
-
+            // _getUserData(context, uid);
+            getDataUser(uid, context);
             if (uid.isNotEmpty) {
               print("aaaaaaaaaaaaaaaaaaaaaaa  $uid");
               // final _autenticationApi = GetIt.instance<autenticationApi>();
@@ -369,11 +393,17 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  void startApplication() {
+    getIt.registerSingleton<RestClient>(RestClient(dio));
+  }
+
   @override
   void initState() {
     super.initState();
     Firebase.initializeApp().whenComplete(() {
       print("completed");
+
+      startApplication();
       setState(() {});
     });
   }

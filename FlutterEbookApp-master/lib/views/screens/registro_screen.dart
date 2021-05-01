@@ -2,7 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_ebook_app/util/consts.dart';
-import 'package:flutter_ebook_app/util/http_helper.dart';
+import 'package:flutter_ebook_app/api/http_helper.dart';
 import 'package:flutter_ebook_app/views/screens/login_screen.dart';
 import 'package:flutter_ebook_app/widgets/widget_popup.dart';
 

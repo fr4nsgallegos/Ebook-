@@ -49,6 +49,7 @@ class DetailsProvider extends ChangeNotifier {
 
   addFav() async {
     await favDB.add({'id': entry.id.t.toString(), 'item': entry.toJson()});
+    print(entry.id.t.toString());
     checkFav();
   }
 
@@ -66,9 +67,9 @@ class DetailsProvider extends ChangeNotifier {
       // check if book has been deleted
       String path = downloads[0]['path'];
       print(path);
-      if(await File(path).exists()){
+      if (await File(path).exists()) {
         setDownloaded(true);
-      }else{
+      } else {
         setDownloaded(false);
       }
     } else {
