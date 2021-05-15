@@ -11,9 +11,11 @@ import 'package:flutter_ebook_app/api/http_helper.dart';
 import 'package:flutter_ebook_app/views/screens/password_screen1.dart';
 import 'package:flutter_ebook_app/theme/theme_config.dart';
 import 'package:flutter_ebook_app/views/screens/registro_screen.dart';
+import 'package:flutter_ebook_app/views/screens/registro_screen_google.dart';
 import 'package:flutter_ebook_app/views/splash/splash.dart';
 import 'package:flutter_ebook_app/widgets/widget_popup.dart';
 import 'package:get_it/get_it.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -44,6 +46,41 @@ Future getDataUser(String id, BuildContext context) {
         logger.e("Got error :" + obj.toString());
     }
   });
+}
+
+final GoogleSignIn googleSignIn = GoogleSignIn();
+final FirebaseAuth _auth = FirebaseAuth.instance;
+
+Future signInWithGoogle() async {
+  final GoogleSignInAccount googleSignInAccount = await googleSignIn.signIn();
+  final GoogleSignInAuthentication googleSignInAuthentication =
+      await googleSignInAccount.authentication;
+  final AuthCredential credential = GoogleAuthProvider.credential(
+      accessToken: googleSignInAuthentication.accessToken,
+      idToken: googleSignInAuthentication.idToken);
+
+  final UserCredential authResult =
+      await _auth.signInWithCredential(credential);
+  final User user = authResult.user;
+
+  if (user != null) {
+    assert(!user.isAnonymous);
+    assert(await user.getIdToken() != null);
+
+    final User currentUser = _auth.currentUser;
+    assert(user.uid == currentUser.uid);
+    print(user.email);
+    print(user.displayName);
+    logger.d('signInWithGoogle succeeded: $user');
+    BuildContext context;
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => RegistroScreenGoogle(
+                  correo: user.email,
+                  nombre: user.displayName,
+                )));
+  }
 }
 
 // Future _getUserData(BuildContext context, String id) async {
@@ -480,6 +517,24 @@ class _LoginScreenState extends State<LoginScreen> {
                       // _buildRememberMeCheckbox(),
                       SizedBox(
                         height: 50,
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text("Ingresa con "),
+                          MaterialButton(
+                            onPressed: () {
+                              signInWithGoogle();
+                            },
+                            color: Colors.grey.shade100,
+                            child: Image.asset(
+                              'assets/images/google_logo.png',
+                              height: 30,
+                            ),
+                            padding: EdgeInsets.all(8),
+                            shape: CircleBorder(),
+                          ),
+                        ],
                       ),
                       _buildLoginBtn(),
                       // _buildSignInWithText(),
