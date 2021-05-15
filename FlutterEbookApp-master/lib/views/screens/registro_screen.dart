@@ -1,10 +1,15 @@
+import 'dart:io';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_ebook_app/provider/user_provider.dart';
 import 'package:flutter_ebook_app/util/consts.dart';
 import 'package:flutter_ebook_app/api/http_helper.dart';
 import 'package:flutter_ebook_app/views/screens/login_screen.dart';
 import 'package:flutter_ebook_app/widgets/widget_popup.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 
 class RegistroScreen extends StatefulWidget {
   RegistroScreen({Key key}) : super(key: key);
@@ -18,6 +23,12 @@ class _RegistroScreenState extends State<RegistroScreen> {
   final contrasenaController = TextEditingController();
   final correoController = TextEditingController();
   final descripcionController = TextEditingController();
+  final txtPregunta = TextEditingController();
+  final txtRespuesta = TextEditingController();
+  final ImagePicker _picker = ImagePicker();
+  dynamic _pickImageError;
+
+  PickedFile _imageFile1;
   GlobalKey<FormState> _key = new GlobalKey();
 
   /*
@@ -146,6 +157,82 @@ class _RegistroScreenState extends State<RegistroScreen> {
                 hintText: 'Ingresa tu correo',
                 hintStyle: kHintTextStyle,
               ),
+            ),
+          ),
+        ),
+        SizedBox(
+          height: 20.0,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPregunta() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Text(
+          'Ingresa tu pregunta secreta',
+          style: kLabelStyle,
+        ),
+        SizedBox(height: 10.0),
+        Container(
+          alignment: Alignment.centerLeft,
+          decoration: kBoxDecorationStyle,
+          height: 60.0,
+          child: TextField(
+            controller: txtPregunta,
+            style: TextStyle(
+              color: Colors.white,
+              fontFamily: 'OpenSans',
+            ),
+            decoration: InputDecoration(
+              border: InputBorder.none,
+              contentPadding: EdgeInsets.only(top: 14.0),
+              prefixIcon: Icon(
+                Icons.security,
+                color: Colors.white,
+              ),
+              hintText: 'Ingresa tu pregunta secreta',
+              hintStyle: kHintTextStyle,
+            ),
+          ),
+        ),
+        SizedBox(
+          height: 20.0,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRespuesta() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Text(
+          'Ingresa tu respuesta secreta',
+          style: kLabelStyle,
+        ),
+        SizedBox(height: 10.0),
+        Container(
+          alignment: Alignment.centerLeft,
+          decoration: kBoxDecorationStyle,
+          height: 60.0,
+          child: TextField(
+            controller: txtRespuesta,
+            style: TextStyle(
+              color: Colors.white,
+              fontFamily: 'OpenSans',
+            ),
+            decoration: InputDecoration(
+              border: InputBorder.none,
+              contentPadding: EdgeInsets.only(top: 14.0),
+              prefixIcon: Icon(
+                Icons.question_answer,
+                color: Colors.white,
+              ),
+              hintText: 'Ingresa tu respuesta secreta',
+              hintStyle: kHintTextStyle,
             ),
           ),
         ),
@@ -343,14 +430,21 @@ class _RegistroScreenState extends State<RegistroScreen> {
                 descripcionController.text,
               )
                   .then((value) {
-                Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => LoginScreen(),
-                    ));
-                snackBar3Sec(context, "Usuario creado con éxito");
-                print(
-                    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa---------------------------------------------");
+                HttpHelper().actualizarUsuario(_imageFile1).then((value) {
+                  print("subiendoimagen");
+                });
+                HttpHelper()
+                    .crearPregunta(correoController.text, txtPregunta.text,
+                        txtRespuesta.text, uid, contrasenaController.text)
+                    .then((value) {
+                  Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => LoginScreen(),
+                      ));
+                  snackBar3Sec(context, "Usuario creado con éxito");
+                });
+
                 print(uid);
               });
 
@@ -371,6 +465,42 @@ class _RegistroScreenState extends State<RegistroScreen> {
             fontSize: 18.0,
             fontWeight: FontWeight.bold,
             fontFamily: 'OpenSans',
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFoto(BuildContext context) {
+    var imagen;
+    return GestureDetector(
+      onTap: () async {
+        await _displayPickImageDialog(context, (ImageSource source) async {
+          try {
+            _imageFile1 =
+                await _picker.getImage(source: source, imageQuality: 50);
+            setState(() {
+              _imageFile1 = _imageFile1;
+            });
+          } catch (e) {
+            setState(() {
+              _pickImageError = e;
+            });
+          }
+        });
+      },
+      child: Container(
+        width: 150,
+        height: 150,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          image: DecorationImage(
+            image: _imageFile1 != null && _imageFile1.path.length > 0
+                ? FileImage(
+                    File(_imageFile1.path),
+                  )
+                : AssetImage("assets/images/app-icon.png"),
+            fit: BoxFit.cover,
           ),
         ),
       ),
@@ -407,7 +537,12 @@ class _RegistroScreenState extends State<RegistroScreen> {
           Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              Logo(),
+              _buildFoto(context),
+              Text(
+                "Sube una foto",
+                style: TextStyle(color: Colors.white),
+              ),
+              // Logo(),
               SizedBox(
                 height: 35,
               ),
@@ -433,6 +568,8 @@ class _RegistroScreenState extends State<RegistroScreen> {
                       _buildEmailTF(),
                       _buildPasswordTF(),
                       _buildNombres(),
+                      _buildPregunta(),
+                      _buildRespuesta(),
                       _buildAcercaMi(),
                       _buildRegistroBtn(),
                     ],
@@ -444,6 +581,102 @@ class _RegistroScreenState extends State<RegistroScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> _displayPickImageDialog(
+      BuildContext context, OnPickImageCallback onPick) async {
+    return showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text('Selecciona una imagen desde:'),
+            actions: <Widget>[
+              FlatButton(
+                child: const Text('CANCELAR'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+              FlatButton(
+                child: const Text('GALERÍA'),
+                onPressed: () {
+                  onPick(ImageSource.gallery);
+                  Navigator.of(context).pop();
+                },
+              ),
+              FlatButton(
+                  child: const Text('CÁMARA'),
+                  onPressed: () {
+                    onPick(ImageSource.camera);
+                    Navigator.of(context).pop();
+                  }),
+            ],
+          );
+        });
+  }
+
+  Center buildBotonesImagenes(BuildContext context) {
+    return Center(
+      child: ListView(
+        shrinkWrap: true,
+        scrollDirection: Axis.horizontal,
+        children: [
+          FlatButton(
+            onPressed: () async {
+              _onImageButtonPressed(context: context, imageFile: 1);
+            },
+            child: _imageFile1 != null && _imageFile1.path.length > 0
+                ? Stack(children: [
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Image.file(
+                        File(_imageFile1.path),
+                        width: 100,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    Positioned(
+                      right: 0,
+                      child: SizedBox(
+                        child: IconButton(
+                          icon: Icon(
+                            Icons.cancel,
+                          ),
+                          color: Colors.red,
+                          onPressed: () {
+                            setState(() {
+                              _imageFile1 = null;
+                            });
+                          },
+                        ),
+                      ),
+                    )
+                  ])
+                : Icon(Icons.camera_alt),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _onImageButtonPressed({BuildContext context, int imageFile}) async {
+    await _displayPickImageDialog(context, (ImageSource source) async {
+      try {
+        final pickedFile = await _picker.getImage(
+          source: source,
+        );
+        print(pickedFile.path);
+        setState(() {
+          if (imageFile == 1) {
+            _imageFile1 = pickedFile;
+          }
+        });
+      } catch (e) {
+        setState(() {
+          _pickImageError = e;
+        });
+      }
+    });
   }
 }
 
@@ -458,3 +691,5 @@ class Logo extends StatelessWidget {
     );
   }
 }
+
+typedef void OnPickImageCallback(ImageSource source);

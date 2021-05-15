@@ -2,14 +2,18 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_ebook_app/api/http_helper.dart';
 import 'package:flutter_ebook_app/components/download_alert.dart';
 import 'package:flutter_ebook_app/database/download_helper.dart';
 import 'package:flutter_ebook_app/database/favorite_helper.dart';
 import 'package:flutter_ebook_app/models/category.dart';
+import 'package:flutter_ebook_app/provider/user_provider.dart';
+import 'package:flutter_ebook_app/session/session_heper.dart';
 import 'package:flutter_ebook_app/util/api.dart';
 import 'package:flutter_ebook_app/util/consts.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:provider/provider.dart';
 
 import '../models/category.dart';
 
@@ -47,9 +51,12 @@ class DetailsProvider extends ChangeNotifier {
     }
   }
 
-  addFav() async {
+  addFav(BuildContext context) async {
     await favDB.add({'id': entry.id.t.toString(), 'item': entry.toJson()});
     print(entry.id.t.toString());
+    HttpHelper().addFavorito(entry.id.t.toString(),
+        Provider.of<UserProvider>(context, listen: false).usuario.codigo);
+
     checkFav();
   }
 

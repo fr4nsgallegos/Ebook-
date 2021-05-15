@@ -59,7 +59,7 @@ class _DetailsState extends State<Details> {
                   if (detailsProvider.faved) {
                     detailsProvider.removeFav();
                   } else {
-                    detailsProvider.addFav();
+                    detailsProvider.addFav(context);
                   }
                 },
                 icon: Icon(

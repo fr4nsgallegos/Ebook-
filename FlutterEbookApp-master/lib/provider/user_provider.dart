@@ -9,11 +9,14 @@ class UserProvider extends ChangeNotifier {
     SessionHelper session = SessionHelper();
     await session.fetchUserData();
     usuario = Usuario(
-      codigo: session.codigo,
-      correo: session.correo,
-      descripcion: session.descripcion,
-      nombre: session.nombres,
-    );
+        codigo: session.codigo,
+        correo: session.correo,
+        descripcion: session.descripcion,
+        nombre: session.nombres,
+        contrasena: session.contrasena,
+        imagen: session.imagen);
+    notifyListeners();
+    return usuario;
   }
 
   Future clearUserData() async {

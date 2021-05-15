@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -7,16 +5,15 @@ import 'package:firebase_performance/firebase_performance.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_ebook_app/api/ebook_api.dart';
-import 'package:flutter_ebook_app/contantes/constantes.dart';
 import 'package:flutter_ebook_app/models/usuario.dart';
 import 'package:flutter_ebook_app/provider/user_provider.dart';
 import 'package:flutter_ebook_app/api/http_helper.dart';
-import 'package:get_it/get_it.dart';
-import 'package:http/http.dart' as http;
+import 'package:flutter_ebook_app/views/screens/password_screen1.dart';
 import 'package:flutter_ebook_app/theme/theme_config.dart';
 import 'package:flutter_ebook_app/views/screens/registro_screen.dart';
 import 'package:flutter_ebook_app/views/splash/splash.dart';
 import 'package:flutter_ebook_app/widgets/widget_popup.dart';
+import 'package:get_it/get_it.dart';
 import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -29,12 +26,23 @@ Future getDataUser(String id, BuildContext context) {
   // GetIt.I.unregister();
   // GetIt.I.registerSingleton(RestClient(dio));
   GetIt.I<RestClient>().getUsuario(id).then((value) async {
+    logger.d("recupernado sata de usuario ");
     SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setString("codigo", value[0].codigo);
     prefs.setString("nombre", value[0].nombre);
     prefs.setString("descripcion", value[0].descripcion);
     prefs.setString("correo", value[0].correo);
+    prefs.setString("imagen", value[0].imagen);
     Provider.of<UserProvider>(context, listen: false).fetchUserData();
+  }).catchError((Object obj) {
+    switch (obj.runtimeType) {
+      case DioError:
+        final res = (obj as DioError).response;
+        logger.e("Got error : ${res.statusCode} -> ${res.statusMessage}");
+        break;
+      default:
+        logger.e("Got error :" + obj.toString());
+    }
   });
 }
 
@@ -204,7 +212,13 @@ class _LoginScreenState extends State<LoginScreen> {
     return Container(
       alignment: Alignment.centerRight,
       child: FlatButton(
-        onPressed: () => print('Olvidaste contraseña apretado'),
+        onPressed: () {
+          Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => PasswordScreen1(),
+              ));
+        },
         padding: EdgeInsets.only(right: 0.0),
         child: Text(
           'Olvidaste la contraseña?',
@@ -462,7 +476,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       _buildEmailTF(),
 
                       _buildPasswordTF(),
-                      // _buildForgotPasswordBtn(),
+                      _buildForgotPasswordBtn(),
                       // _buildRememberMeCheckbox(),
                       SizedBox(
                         height: 50,
