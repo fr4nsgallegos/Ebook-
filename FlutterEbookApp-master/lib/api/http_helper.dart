@@ -11,10 +11,11 @@ class HttpHelper {
   String urlBase = 'http://10.0.2.2:3000/api/';
   String urlContrasena = "http://10.0.2.2:3001/api/";
 
-  Future<String> addFavorito(String url, String idUsuario) async {
+  Future<String> addFavorito(String url, String idUsuario, String body) async {
     final response = await http.post(urlBase + "favoritos/", body: {
       "id_usuario": idUsuario,
       "libro": url,
+      "body": body,
     });
 
     if (response.statusCode != 200 && response.statusCode != 201) {

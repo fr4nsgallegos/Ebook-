@@ -8,12 +8,14 @@ import 'package:flutter_ebook_app/api/ebook_api.dart';
 import 'package:flutter_ebook_app/models/usuario.dart';
 import 'package:flutter_ebook_app/provider/user_provider.dart';
 import 'package:flutter_ebook_app/api/http_helper.dart';
+import 'package:flutter_ebook_app/session/session_heper.dart';
 import 'package:flutter_ebook_app/views/screens/password_screen1.dart';
 import 'package:flutter_ebook_app/theme/theme_config.dart';
 import 'package:flutter_ebook_app/views/screens/registro_screen.dart';
 import 'package:flutter_ebook_app/views/screens/registro_screen_google.dart';
 import 'package:flutter_ebook_app/views/splash/splash.dart';
 import 'package:flutter_ebook_app/widgets/widget_popup.dart';
+import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:get_it/get_it.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:logger/logger.dart';
@@ -119,6 +121,67 @@ class _LoginScreenState extends State<LoginScreen> {
   final getIt = GetIt.instance;
   final dio = Dio();
 
+  Future signInWithFacebook() async {
+    Map userData;
+    try {
+      AccessToken _accessToken = await FacebookAuth.instance.login();
+      userData = await FacebookAuth.instance.getUserData();
+
+      final AuthCredential credential =
+          FacebookAuthProvider.credential(_accessToken.token);
+      final UserCredential authResult =
+          await _auth.signInWithCredential(credential);
+      final User user = authResult.user;
+
+      if (user != null) {
+        assert(!user.isAnonymous);
+        assert(await user.getIdToken() != null);
+
+        final User currentUser = _auth.currentUser;
+        assert(user.uid == currentUser.uid);
+
+        logger.d('signInWithFacebook succeeded: $user');
+        BuildContext context;
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => RegistroScreenGoogle(
+                      correo: user.email,
+                      nombre: user.displayName,
+                    )));
+        // await _loginSocial(context, user.displayName, user.email);
+      }
+    } on FacebookAuthException catch (e) {
+      logger.e(e.message);
+      switch (e.errorCode) {
+        case FacebookAuthErrorCode.OPERATION_IN_PROGRESS:
+          print("You have a previous login operation in progress");
+          break;
+        case FacebookAuthErrorCode.CANCELLED:
+          print("login cancelled");
+          break;
+        case FacebookAuthErrorCode.FAILED:
+          print("login failed");
+          break;
+      }
+    } catch (e, s) {
+      if (userData != null) {
+        // _loginSocial(context, userData["name"], userData["email"]);
+        BuildContext context;
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => RegistroScreenGoogle(
+                      correo: userData["email"],
+                      nombre: userData["displayName"],
+                    )));
+      } else {
+        logger.e(e);
+        logger.e(s);
+      }
+    } finally {}
+  }
+
   Future<String> logIn(String email, String password) async {
     FirebaseAuth firebaseAuth = FirebaseAuth.instance;
 
@@ -131,6 +194,9 @@ class _LoginScreenState extends State<LoginScreen> {
     } on FirebaseAuthException catch (e) {
       print("--------------------");
       logger.e(e.message);
+      logger.e(e.code);
+      print(e.code);
+      SessionHelper().codLogin = e.code;
     }
   }
 
@@ -396,13 +462,17 @@ class _LoginScreenState extends State<LoginScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: <Widget>[
           _buildSocialBtn(
-            () => print('Logueo con Facebook'),
+            () {
+              signInWithFacebook();
+            },
             AssetImage(
               'assets/logos/facebook.jpg',
             ),
           ),
           _buildSocialBtn(
-            () => print('Logueo con Google'),
+            () {
+              signInWithGoogle();
+            },
             AssetImage(
               'assets/logos/google.jpg',
             ),
@@ -515,6 +585,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       _buildPasswordTF(),
                       _buildForgotPasswordBtn(),
                       // _buildRememberMeCheckbox(),
+                      _buildLoginBtn(),
+
                       SizedBox(
                         height: 50,
                       ),
@@ -522,21 +594,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text("Ingresa con "),
-                          MaterialButton(
-                            onPressed: () {
-                              signInWithGoogle();
-                            },
-                            color: Colors.grey.shade100,
-                            child: Image.asset(
-                              'assets/images/google_logo.png',
-                              height: 30,
-                            ),
-                            padding: EdgeInsets.all(8),
-                            shape: CircleBorder(),
-                          ),
                         ],
                       ),
-                      _buildLoginBtn(),
+                      _buildSocialBtnRow(),
                       // _buildSignInWithText(),
                       // _buildSocialBtnRow(),
 

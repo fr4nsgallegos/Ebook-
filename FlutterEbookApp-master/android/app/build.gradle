@@ -75,4 +75,6 @@ dependencies {
     implementation 'com.google.firebase:firebase-perf-ktx:19.0.10'
     implementation 'com.google.firebase:firebase-perf'
     implementation 'com.google.android.gms:play-services-basement:17.5.0'
+    implementation 'com.facebook.android:facebook-login:[8.1)'
+
 }

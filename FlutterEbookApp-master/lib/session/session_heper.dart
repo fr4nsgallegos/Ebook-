@@ -7,11 +7,17 @@ class SessionHelper {
   String descripcion;
   String contrasena;
   String imagen;
+  String tituloCategoria;
+  String codCategoria;
+  String codLogin;
 
-  // static final SessionHelper _sessionHelper = SessionHelper._internal();
+  static final SessionHelper _sessionHelper = SessionHelper._internal();
 
-  // SessionHelper._internal();
+  SessionHelper._internal();
 
+  factory SessionHelper() {
+    return _sessionHelper;
+  }
   Future fetchUserData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     codigo = prefs.getString("codigo");

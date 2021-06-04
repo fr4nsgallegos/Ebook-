@@ -54,8 +54,21 @@ class DetailsProvider extends ChangeNotifier {
   addFav(BuildContext context) async {
     await favDB.add({'id': entry.id.t.toString(), 'item': entry.toJson()});
     print(entry.id.t.toString());
-    HttpHelper().addFavorito(entry.id.t.toString(),
-        Provider.of<UserProvider>(context, listen: false).usuario.codigo);
+    print(entry.toJson().toString());
+    print("-------------------");
+    print(entry.toJson()["category"][0]["label"].toString());
+    print(entry.toJson()["category"][0]["term"].toString());
+    SessionHelper().tituloCategoria =
+        entry.toJson()["category"][0]["label"].toString();
+    SessionHelper().codCategoria =
+        entry.toJson()["category"][0]["term"].toString();
+    print("SESSSION HELPER");
+    print(SessionHelper().tituloCategoria);
+    print(SessionHelper().codCategoria);
+    HttpHelper().addFavorito(
+        entry.id.t.toString(),
+        Provider.of<UserProvider>(context, listen: false).usuario.codigo,
+        entry.toJson().toString());
 
     checkFav();
   }

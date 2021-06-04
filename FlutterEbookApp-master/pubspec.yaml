@@ -21,18 +21,22 @@ dependencies:
     sdk: flutter
   another_flushbar: ^1.10.11
   cached_network_image: ^2.2.0+1
+  cloud_firestore: any
   cupertino_icons: ^0.1.2
+  date_format: ^2.0.2
   dio: ^3.0.9
   epub_viewer: ^0.1.8
   esys_flutter_share: ^1.0.2
   firebase_auth: ^0.18.1+1
   firebase_core: ^0.5.0
   firebase_performance: ^0.4.2
+  firebase_storage: any
   flutter_icons: ^1.1.0
   flutter_spinkit: ^4.1.2+1
   fluttertoast: ^7.0.2
   get_it: ^5.0.1
   google_fonts: ^1.1.0
+  google_sign_in: ^4.5.9
   http: ^0.12.2
   image_picker: ^0.6.7+22
   logger: ^0.9.4
@@ -40,16 +44,13 @@ dependencies:
   objectdb: ^1.0.7+1
   path_provider: ^1.4.0
   permission_handler: ^4.2.0+hotfix.1
+  photo_view: ^0.10.2
   provider: ^4.0.1
   retrofit: ^1.3.4+1
   shared_preferences: ^0.5.10
   uuid: ^2.2.0
   xml2json: ^4.3.0
-  photo_view: ^0.10.2
-  google_sign_in: ^4.5.9
-
-
-
+  flutter_facebook_auth: 
 
 dev_dependencies:
   flutter_test:

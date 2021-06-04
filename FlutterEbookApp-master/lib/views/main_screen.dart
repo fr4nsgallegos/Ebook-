@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_ebook_app/util/dialogs.dart';
 import 'package:flutter_ebook_app/views/explore/explore.dart';
 import 'package:flutter_ebook_app/views/home/home.dart';
+import 'package:flutter_ebook_app/views/screens/search_screen.dart';
 import 'package:flutter_ebook_app/views/settings/settings.dart';
 import 'package:flutter_icons/flutter_icons.dart';
 
@@ -26,6 +27,7 @@ class _MainScreenState extends State<MainScreen> {
           children: <Widget>[
             Home(),
             Explore(),
+            SearchScreen(),
             Profile(),
           ],
         ),
@@ -50,6 +52,14 @@ class _MainScreenState extends State<MainScreen> {
               ),
               title: Text(
                 'Explore',
+              ),
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(
+                Feather.search,
+              ),
+              title: Text(
+                'Search',
               ),
             ),
             BottomNavigationBarItem(
