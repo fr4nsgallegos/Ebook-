@@ -1,3 +1,4 @@
+import 'package:flutter_ebook_app/models/category.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SessionHelper {
@@ -10,7 +11,7 @@ class SessionHelper {
   String tituloCategoria;
   String codCategoria;
   String codLogin;
-
+  List<Category> listaCategoria = [];
   static final SessionHelper _sessionHelper = SessionHelper._internal();
 
   SessionHelper._internal();

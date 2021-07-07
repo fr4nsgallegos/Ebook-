@@ -58,17 +58,26 @@ class DetailsProvider extends ChangeNotifier {
     print("-------------------");
     print(entry.toJson()["category"][0]["label"].toString());
     print(entry.toJson()["category"][0]["term"].toString());
-    SessionHelper().tituloCategoria =
-        entry.toJson()["category"][0]["label"].toString();
-    SessionHelper().codCategoria =
-        entry.toJson()["category"][0]["term"].toString();
+    // SessionHelper().tituloCategoria =
+    //     entry.toJson()["category"][0]["label"].toString();
+    // SessionHelper().codCategoria =
+    //     entry.toJson()["category"][0]["term"].toString();
     print("SESSSION HELPER");
-    print(SessionHelper().tituloCategoria);
-    print(SessionHelper().codCategoria);
-    HttpHelper().addFavorito(
-        entry.id.t.toString(),
-        Provider.of<UserProvider>(context, listen: false).usuario.codigo,
-        entry.toJson().toString());
+    // print(SessionHelper().tituloCategoria);
+    print(entry.category[0].label);
+    entry.category.forEach((element) {
+      print("assssssssssssssssssssssssssssss");
+
+      SessionHelper().listaCategoria.add(element);
+      print(element.label);
+
+      // else if(element.)
+    });
+
+    // HttpHelper().addFavorito(
+    //     entry.id.t.toString(),
+    //     Provider.of<UserProvider>(context, listen: false).usuario.codigo,
+    //     entry.toJson().toString());
 
     checkFav();
   }

@@ -14,10 +14,13 @@ class Favorites extends StatefulWidget {
 }
 
 class _FavoritesState extends State<Favorites> {
+  List<Category> favoritosList = [];
   @override
   void initState() {
     super.initState();
     getFavorites();
+    masRepetido();
+    eliminarDcuplicadosLista();
   }
 
   @override
@@ -34,6 +37,59 @@ class _FavoritesState extends State<Favorites> {
         }
       },
     );
+  }
+
+  final categories = {
+    'shortStory': 'cat=FBFIC029000',
+    'sciFi': 'cat=FBFIC028000',
+    'actionAdventure': 'cat=FBFIC002000',
+    'mystery': 'cat=FBFIC022000',
+    'romance': 'cat=FBFIC027000',
+    'horror': 'cat=FBFIC015000',
+  };
+  String nombreMasFav;
+  String codMasFav;
+  Future masRepetido() async {
+    List<String> auxList = [];
+    SessionHelper().listaCategoria.forEach((element) {
+      auxList.add(element.term);
+    });
+    print(auxList.length);
+    Map<String, int> count = {};
+    await SessionHelper().listaCategoria.forEach((element) {
+      count[element.term] =
+          count.containsKey(element.term) ? count[element.term] + 1 : 1;
+      print('${count.toString()}');
+      print("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaalaaa");
+
+      print(count[2]);
+      // print(SessionHelper().listaCategoria.asMap().toString());
+    });
+    int max = count[auxList[0]];
+    for (int i = 0; i < auxList.length; i++) {
+      if (count[auxList[i]] > max) {
+        max = count[auxList[i]];
+      }
+    }
+    print(max);
+    print("asdasdasd");
+    count.forEach((key, value) {
+      if (value == max) {
+        print("key = $key : value : $value");
+        print(SessionHelper().listaCategoria.length);
+        nombreMasFav = key;
+        codMasFav = categories[key];
+      }
+    });
+  }
+
+  void eliminarDcuplicadosLista() {
+    favoritosList = SessionHelper().listaCategoria;
+    final titulos = favoritosList.map((e) => e.label).toSet();
+
+    setState(() {
+      favoritosList.retainWhere((element) => titulos.remove(element.label));
+    });
   }
 
   @override
@@ -78,12 +134,9 @@ class _FavoritesState extends State<Favorites> {
     );
   }
 
-  String tittleCat = SessionHelper().tituloCategoria;
-  String codCat = SessionHelper().codCategoria;
   String url;
+  String urlFavoritosgeneral = "https://catalog.feedbooks.com/search.atom?cat=";
   _buildGridView(FavoritesProvider favoritesProvider) {
-    String url = "https://catalog.feedbooks.com/top.atom?cat?+$codCat";
-
     return Padding(
       padding: const EdgeInsets.only(top: 20, bottom: 30, left: 20, right: 20),
       child: Column(
@@ -120,26 +173,68 @@ class _FavoritesState extends State<Favorites> {
             height: 10,
           ),
           Container(
-              height: 45,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                children: [
-                  MaterialButton(
-                    color: Colors.blueAccent,
-                    onPressed: () {
-                      MyRouter.pushPage(
-                        context,
-                        Genre(
-                          title: tittleCat,
-                          url: url,
+            height: 45,
+            child: favoritosList.length == 0
+                ? Text("No hay favoritos")
+                : ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: favoritosList.length,
+                    itemBuilder: (context, index) {
+                      urlFavoritosgeneral = urlFavoritosgeneral +
+                          favoritosList[index].term +
+                          "&cat=";
+
+                      String url =
+                          "https://catalog.feedbooks.com/top.atom?cat?+${favoritosList[index].term}";
+
+                      print("sauiasdasd");
+                      print(urlFavoritosgeneral);
+                      return Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: MaterialButton(
+                          color: Colors.blueAccent,
+                          onPressed: () {
+                            MyRouter.pushPage(
+                              context,
+                              Genre(
+                                title: favoritosList[index].label,
+                                url: url,
+                              ),
+                            );
+                          },
+                          child: Text(favoritosList[index].label),
+                          height: 20,
                         ),
                       );
                     },
-                    child: Text(tittleCat),
-                    height: 20,
+                    // children: [
+
+                    // ],
                   ),
-                ],
-              )),
+          ),
+          Text(
+            "Libros recomendados",
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          ),
+          SizedBox(
+            height: 10,
+          ),
+          MaterialButton(
+            color: Colors.blueAccent,
+            onPressed: () {
+              String urlMasFav =
+                  "https://catalog.feedbooks.com/top.atom?cat?+$codMasFav";
+              MyRouter.pushPage(
+                context,
+                Genre(
+                  title: "LIBROS RECOMENDADOS $nombreMasFav",
+                  url: urlMasFav,
+                ),
+              );
+            },
+            child: Text("LIBROS RECOMENDADOS $nombreMasFav"),
+            height: 20,
+          ),
         ],
       ),
     );
