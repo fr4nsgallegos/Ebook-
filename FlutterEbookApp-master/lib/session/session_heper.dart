@@ -13,7 +13,7 @@ class SessionHelper {
   String codLogin;
   List<Category> listaCategoria = [];
   static final SessionHelper _sessionHelper = SessionHelper._internal();
-
+  List<Entry> favoriteListPdf = [];
   SessionHelper._internal();
 
   factory SessionHelper() {

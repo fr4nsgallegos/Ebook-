@@ -1,12 +1,20 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_ebook_app/components/book.dart';
 import 'package:flutter_ebook_app/models/category.dart';
 import 'package:flutter_ebook_app/session/session_heper.dart';
 import 'package:flutter_ebook_app/util/router.dart';
 import 'package:flutter_ebook_app/view_models/favorites_provider.dart';
+import 'package:flutter_ebook_app/views/favorites/mobile_pdf.dart';
 import 'package:flutter_ebook_app/views/genre/genre.dart';
+import 'package:flutter_ebook_app/views/genre/genre_fav.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
+// import 'package:pdf/widgets.dart' as pw;
+import 'package:syncfusion_flutter_pdf/pdf.dart';
 
 class Favorites extends StatefulWidget {
   @override
@@ -40,15 +48,19 @@ class _FavoritesState extends State<Favorites> {
   }
 
   final categories = {
-    'shortStory': 'cat=FBFIC029000',
-    'sciFi': 'cat=FBFIC028000',
-    'actionAdventure': 'cat=FBFIC002000',
-    'mystery': 'cat=FBFIC022000',
-    'romance': 'cat=FBFIC027000',
-    'horror': 'cat=FBFIC015000',
+    'FBFIC029000': 'shortStory',
+    'FBFIC028000': 'sciFi',
+    'FBFIC002000': 'actionAdventure',
+    'FBFIC022000': 'mystery',
+    'FBFIC027000': 'romance',
+    'FBFIC015000': 'horror',
+    'FBFIC000000': 'fiction',
+    'FBFIC019000': "Litearary",
+    'FBFIC009000': "Fantasy",
   };
   String nombreMasFav;
   String codMasFav;
+
   Future masRepetido() async {
     List<String> auxList = [];
     SessionHelper().listaCategoria.forEach((element) {
@@ -56,9 +68,8 @@ class _FavoritesState extends State<Favorites> {
     });
     print(auxList.length);
     Map<String, int> count = {};
-    await SessionHelper().listaCategoria.forEach((element) {
-      count[element.term] =
-          count.containsKey(element.term) ? count[element.term] + 1 : 1;
+    auxList.forEach((element) {
+      count[element] = count.containsKey(element) ? count[element] + 1 : 1;
       print('${count.toString()}');
       print("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaalaaa");
 
@@ -90,6 +101,60 @@ class _FavoritesState extends State<Favorites> {
     setState(() {
       favoritosList.retainWhere((element) => titulos.remove(element.label));
     });
+  }
+
+  // final pdf = pw.Document();
+  Future<void> hacerPDF() async {
+    // pdf.addPage(
+    //   pw.Page(
+    //     pageFormat: PdfPageFormat.a4,
+    //     build: (pw.Context context) {
+    //       return pw.Center(
+    //         child: pw.Text("Hello World"),
+    //       ); // Center
+    //     },
+    //   ),
+    // );
+    // final output = await getTemporaryDirectory();
+
+    PdfDocument document = PdfDocument();
+    document.pageSettings.margins.all = 30;
+    final page = document.pages.add();
+    // page.graphics.drawString(
+    //     "FRANS GALLEGOS MENDOZA", PdfStandardFont(PdfFontFamily.helvetica, 30));
+    PdfSection section = document.sections.add();
+    section.pageSettings.rotate = PdfPageRotateAngle.rotateAngle0;
+    section.pageSettings.size = const Size(300, 400);
+
+//Draw simple text on the page
+    section.pages.add().graphics.drawString(
+        'Rotated by 0 degrees', PdfStandardFont(PdfFontFamily.helvetica, 15),
+        brush: PdfBrushes.black, bounds: const Rect.fromLTWH(20, 20, 0, 0));
+    double top = 40;
+
+    SessionHelper().favoriteListPdf.forEach((element) {
+      String text = "${element.title} con la categoria: ${element.category}";
+      page.graphics.drawString(
+          text, PdfStandardFont(PdfFontFamily.helvetica, 15),
+          brush: PdfBrushes.black,
+          bounds: Rect.fromLTWH(40, top + 15, 500, 40),
+          format: PdfStringFormat(
+              textDirection: PdfTextDirection.rightToLeft,
+              alignment: PdfTextAlignment.right,
+              paragraphIndent: 35));
+    });
+    page.graphics.drawString(
+        'Hello World!', PdfStandardFont(PdfFontFamily.helvetica, 20),
+        bounds: Rect.fromLTWH(40, 40, 500, 40));
+
+    // String text =
+    //     'asdasdasdasdasd asasd asd asdku hasi hasidh asiuhdask jhasdlk jaslidj ashd asiuh daskjh daskuh dasikuh dasikuhd asku haskudh askuhd askudh askudh askduh';
+
+//Draw text
+
+    List<int> bytes = document.save();
+    document.dispose();
+    saveAndLaunchFile(bytes, 'OUT.pdf');
   }
 
   @override
@@ -136,6 +201,7 @@ class _FavoritesState extends State<Favorites> {
 
   String url;
   String urlFavoritosgeneral = "https://catalog.feedbooks.com/search.atom?cat=";
+  String txtMasFav;
   _buildGridView(FavoritesProvider favoritesProvider) {
     return Padding(
       padding: const EdgeInsets.only(top: 20, bottom: 30, left: 20, right: 20),
@@ -185,10 +251,8 @@ class _FavoritesState extends State<Favorites> {
                           "&cat=";
 
                       String url =
-                          "https://catalog.feedbooks.com/top.atom?cat?+${favoritosList[index].term}";
+                          "https://catalog.feedbooks.com/publicdomain/browse/top.atom?cat?+${favoritosList[index].term}";
 
-                      print("sauiasdasd");
-                      print(urlFavoritosgeneral);
                       return Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: MaterialButton(
@@ -223,20 +287,84 @@ class _FavoritesState extends State<Favorites> {
             color: Colors.blueAccent,
             onPressed: () {
               String urlMasFav =
-                  "https://catalog.feedbooks.com/top.atom?cat?+$codMasFav";
+                  "https://catalog.feedbooks.com/publicdomain/browse/top.atom?cat?+$nombreMasFav";
               MyRouter.pushPage(
                 context,
-                Genre(
-                  title: "LIBROS RECOMENDADOS $nombreMasFav",
+                GenreFav(
+                  title: "LIBROS RECOMENDADOS ${categories[nombreMasFav]}",
                   url: urlMasFav,
                 ),
               );
             },
-            child: Text("LIBROS RECOMENDADOS $nombreMasFav"),
+            child: Text("LIBROS RECOMENDADOS ${categories[nombreMasFav]}"),
+            height: 20,
+          ),
+          SizedBox(
+            height: 10,
+          ),
+          MaterialButton(
+            color: Colors.blueAccent,
+            onPressed: () {
+              hacerPDF();
+            },
+            child: Text("Generar PDF"),
             height: 20,
           ),
         ],
       ),
     );
   }
+
+  Future<void> _createPDF() async {
+    PdfDocument document = PdfDocument();
+    final page = document.pages.add();
+
+    page.graphics.drawString('Welcome to PDF Succinctly!',
+        PdfStandardFont(PdfFontFamily.helvetica, 30));
+
+    page.graphics.drawImage(
+        PdfBitmap(await _readImageData('Pdf_Succinctly.jpg')),
+        Rect.fromLTWH(0, 100, 440, 550));
+
+    PdfGrid grid = PdfGrid();
+    grid.style = PdfGridStyle(
+        font: PdfStandardFont(PdfFontFamily.helvetica, 30),
+        cellPadding: PdfPaddings(left: 5, right: 2, top: 2, bottom: 2));
+
+    grid.columns.add(count: 3);
+    grid.headers.add(1);
+
+    PdfGridRow header = grid.headers[0];
+    header.cells[0].value = 'Roll No';
+    header.cells[1].value = 'Name';
+    header.cells[2].value = 'Class';
+
+    PdfGridRow row = grid.rows.add();
+    row.cells[0].value = '1';
+    row.cells[1].value = 'Arya';
+    row.cells[2].value = '6';
+
+    row = grid.rows.add();
+    row.cells[0].value = '2';
+    row.cells[1].value = 'John';
+    row.cells[2].value = '9';
+
+    row = grid.rows.add();
+    row.cells[0].value = '3';
+    row.cells[1].value = 'Tony';
+    row.cells[2].value = '8';
+
+    grid.draw(
+        page: document.pages.add(), bounds: const Rect.fromLTWH(0, 0, 0, 0));
+
+    List<int> bytes = document.save();
+    document.dispose();
+
+    saveAndLaunchFile(bytes, 'Output.pdf');
+  }
+}
+
+Future<Uint8List> _readImageData(String name) async {
+  final data = await rootBundle.load('images/$name');
+  return data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
 }
